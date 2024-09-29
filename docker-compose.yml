@@ -1,0 +1,44 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  iot-device-1:
+    build: ./iot-devices
+    environment:
+      - DEVICE_ID=1
+      - DEVICE_TYPE=cnc_machine
+      - MQTT_BROKER=mosquitto
+    depends_on:
+      - mosquitto
+
+  iot-device-2:
+    build: ./iot-devices
+    environment:
+      - DEVICE_ID=2
+      - DEVICE_TYPE=3d_printer
+      - MQTT_BROKER=mosquitto
+    depends_on:
+      - mosquitto
+
+  node-red:
+    image: nodered/node-red:latest
+    ports:
+      - "1880:1880"
+    volumes:
+      - ./node-red-data:/data
+    depends_on:
+      - mosquitto
+
+  nextjs-dashboard:
+    build: ./scheduler-dash
+    ports:
+      - "3000:3000"
+    depends_on:
+      - node-red
+

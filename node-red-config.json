@@ -1,0 +1,110 @@
+[
+    {
+        "id": "3e17b02d627856a5",
+        "type": "tab",
+        "label": "IoT Data Flow",
+        "disabled": false,
+        "info": "This flow processes IoT device data and sends it to the dashboard."
+    },
+    {
+        "id": "mqtt-in",
+        "type": "mqtt in",
+        "z": "3e17b02d627856a5",
+        "name": "IoT Devices",
+        "topic": "iot/device/+",
+        "qos": "2",
+        "datatype": "json",
+        "broker": "broker1",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 130,
+        "y": 80,
+        "wires": [
+            [
+                "process-device-data"
+            ]
+        ]
+    },
+    {
+        "id": "process-device-data",
+        "type": "function",
+        "z": "3e17b02d627856a5",
+        "name": "Process Device Data",
+        "func": "// Add timestamp if not present\nif (!msg.payload.timestamp) {\n    msg.payload.timestamp = Date.now();\n}\n\n// Round numeric values to 2 decimal places\nfor (let key in msg.payload) {\n    if (typeof msg.payload[key] === 'number') {\n        msg.payload[key] = Math.round(msg.payload[key] * 100) / 100;\n    }\n}\n\n// Add a message type for the frontend\nmsg.payload.msgType = 'deviceData';\n\nreturn {payload: JSON.stringify(msg.payload)};",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 80,
+        "wires": [
+            [
+                "websocket-out",
+                "debug-output"
+            ]
+        ]
+    },
+    {
+        "id": "websocket-out",
+        "type": "websocket out",
+        "z": "3e17b02d627856a5",
+        "name": "To Dashboard",
+        "server": "ws-server",
+        "client": "",
+        "x": 570,
+        "y": 80,
+        "wires": []
+    },
+    {
+        "id": "debug-output",
+        "type": "debug",
+        "z": "3e17b02d627856a5",
+        "name": "Debug Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 570,
+        "y": 140,
+        "wires": []
+    },
+    {
+        "id": "broker1",
+        "type": "mqtt-broker",
+        "name": "Local MQTT Broker",
+        "broker": "mosquitto",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "sessionExpiry": ""
+    },
+    {
+        "id": "ws-server",
+        "type": "websocket-listener",
+        "path": "/ws",
+        "wholemsg": "false"
+    }
+]
