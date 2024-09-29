@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+.next
+.git
+.env
+.DS_Store
+.yarn
+.yarnrc.yml
+.pnp.*
+.yarn.lock
